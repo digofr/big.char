@@ -283,23 +283,36 @@ setMethod('[<-',
 setMethod("[",
           signature(x = "big.char", i="ANY", j="missing", drop="missing"),
           function(x, i, j, ..., drop) {
-            #cat("In get:(ANY, missing, missing) signature\n")   
+            #cat("In get:(ANY, missing, missing) signature\n")
+            if (nargs() >= 3) stop("x[i,] signature not permitted")
+            
             if (is.character(i)) {
               if (!is.null(names(x))) i <- match(i, names(x))
               else stop("object does not have names")
-            }
-            if (nargs() >= 3) stop("x[i,] signature not permitted")
+              
+            }else if (all(i<=0)) i <- c(1:length(x))[c(i)]
+            else if (any(i<0)) stop("only 0's may be mixed with negative subscripts")
+            else{
+              if(is.logical(i)) i<-which(i)
+              iota <- which(i>length(x))
+              i[iota]<-length(x) 
+            }#addition of Shae & Rodrigo
+            
+            
             val <- bigmemory:::GetCols.bm(x, i, drop=FALSE) # Note: using cols!
             if (any(!is.na(val)))
               val[!is.na(val)] <- sapply(val[!is.na(val)],
                                          function(x) rawToChar(as.raw(x)))
+            
+            val[,iota]<-NA #addition of Shae & Rodrigo
+            
             val <- apply(val, 2,
                          function(x) {
                            ifelse(any(!is.na(x)),
                                   paste(x[!is.na(x)], collapse=""), NA)
                          })       
             if (length(val)>0) names(val) <- names(x)[i]
-            else if (!is.null(names(x))) names(val) <- character(0)
+            else if (!is.null(names(x))) names(val) <- character(0)            
             return(val)
           })
 
@@ -338,6 +351,8 @@ setMethod('[<-',
           signature(x = "big.char", i="ANY", j="missing"),
           function(x, i, j, ..., value) {
             if (nargs() == 4) stop("x[i,] signature not permitted")
+#            if (any(i > length(x))) {
+#              readlines Lines prompt("i>length(x). Reallocate x to size i?")}
             areNA <- is.na(value)
             value[areNA] <- "X" # Because strsplit(NA, "") is an error
             value <- strsplit(value, "") # Examine strsplit("", "")
