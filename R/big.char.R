@@ -310,11 +310,11 @@ setMethod("[",
             }
             val[1,iota]<-NA #addition of Shae & Rodrigo
             
-            #             val <- apply(val, 2,
-            #                          function(x) {
-            #                            ifelse(any(!is.na(x)),
-            #                                   paste(x[!is.na(x)], collapse=""), NA)
-            #                          })       
+#             val <- apply(val, 2,
+#                          function(x) {
+#                            ifelse(any(!is.na(x)),
+#                                   paste(x[!is.na(x)], collapse=""), NA)
+#                          })       
             if (length(val)>0) names(val) <- names(x)[i]
             else if (!is.null(names(x))) names(val) <- character(0)            
             return(val[1,])
@@ -399,17 +399,21 @@ setMethod("[",
           function(x, i, j, ..., drop) {
             #cat("In get:(missing, missing, missing) signature\n")
             val <- bigmemory:::GetAll.bm(x, drop=FALSE)
-            if (any(!is.na(val)))
-              val[!is.na(val)] <- sapply(val[!is.na(val)],
-                                         function(x) rawToChar(as.raw(x)))
-            val <- apply(val, 2,
-                         function(x) {
-                           ifelse(any(!is.na(x)),
-                                  paste(x[!is.na(x)], collapse=""), NA)
-                         })
+#             if (any(!is.na(val)))
+#               val[!is.na(val)] <- sapply(val[!is.na(val)],
+#                                          function(x) rawToChar(as.raw(x)))
+#             val <- apply(val, 2,
+#                          function(x) {
+#                            ifelse(any(!is.na(x)),
+#                                   paste(x[!is.na(x)], collapse=""), NA)
+#                          })
+            for(j in 1:length(x)) {
+              if (!is.na(val[1,j]))
+                val[1,j] <- rawToChar(as.raw(val[(!is.na(val[,j])),j]))
+            }
             if (length(val)>0) names(val) <- names(x)
             else if (!is.null(names(x))) names(val) <- character(0)
-            return(val)
+            return(val[1,])
           })
 #' @title non-recommended  [:(missing, missing, logical) signature
 #' @rdname big.char-methods-nonrec
