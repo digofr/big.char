@@ -300,20 +300,24 @@ setMethod("[",
             
             
             val <- bigmemory:::GetCols.bm(x, i, drop=FALSE) # Note: using cols!
-            if (any(!is.na(val)))
-              val[!is.na(val)] <- sapply(val[!is.na(val)],
-                                         function(x) rawToChar(as.raw(x)))
+#             if (any(!is.na(val)))
+#               val[!is.na(val)] <- sapply(val[!is.na(val)],
+#                                          function(x) rawToChar(as.raw(x)))
+
+            for(j in 1:length(i)) {
+              if (!is.na(val[1,j]))
+                val[1,j] <- rawToChar(as.raw(val[(!is.na(val[,j])),j]))
+            }
+            val[1,iota]<-NA #addition of Shae & Rodrigo
             
-            val[,iota]<-NA #addition of Shae & Rodrigo
-            
-            val <- apply(val, 2,
-                         function(x) {
-                           ifelse(any(!is.na(x)),
-                                  paste(x[!is.na(x)], collapse=""), NA)
-                         })       
+            #             val <- apply(val, 2,
+            #                          function(x) {
+            #                            ifelse(any(!is.na(x)),
+            #                                   paste(x[!is.na(x)], collapse=""), NA)
+            #                          })       
             if (length(val)>0) names(val) <- names(x)[i]
             else if (!is.null(names(x))) names(val) <- character(0)            
-            return(val)
+            return(val[1,])
           })
 
 #' @title Not recommend, but we pass this through
