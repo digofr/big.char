@@ -368,6 +368,16 @@ value <- sapply(strtrim(value, maxchar(x)), function(a) {
   else c(charToRaw(a), rep(0, maxchar(x)-nchar(a)))
 }) #addition of Rodrigo & Shae
 
+# implements vector recycling, Rodrigo and Shae
+if (length(i) != ncol(value)){
+  if (length(i) %% ncol(value) != 0) {
+    warning("number of items to replace is not a multiple of replacement length")
+    value <- c(rep(value,length(i) %/% ncol(value)),
+               value[1:(length(i) %% ncol(value))])
+  }
+  else {value <- rep(value,length(i) / ncol(value))}
+}
+
 # 
 # 
 # 
