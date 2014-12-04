@@ -357,32 +357,46 @@ setMethod('[<-',
             if (nargs() == 4) stop("x[i,] signature not permitted")
 #            if (any(i > length(x))) {
 #              readlines Lines prompt("i>length(x). Reallocate x to size i?")}
-            areNA <- is.na(value)
-            value[areNA] <- "X" # Because strsplit(NA, "") is an error
-            value <- strsplit(value, "") # Examine strsplit("", "")
-            value <- lapply(value,
-                            function(a) {
-                              if (length(a)==0) return(0)
-                              else return(as.integer(sapply(a, charToRaw)))
-                            })
-            if (any(unlist(value) > 127)) stop("Invalid character")
-            these <- sapply(value, length)
-            value[these < maxchar(x)] <-
-              lapply(value[these < maxchar(x)],
-                     function(a) c(a, rep(NA, maxchar(x)-length(a))))
-            
-            # POTENTIAL HOMEWORK EXERCISE:
-            if (any(these > maxchar(x))) {
-              warning("Long string(s) truncated to maxchar characters")
-              value[these > maxchar(x)] <- lapply(value[these > maxchar(x)],
-                                                  function(a) a[1:maxchar(x)])
-            }
-            
-            # We may have an assignment bug in bigmemory with a 1-column
-            # matrix.
-            value <- matrix(unlist(value), nrow=maxchar(x)) # needed
-            if (any(areNA)) value[,areNA] <- NA
-            if (ncol(value)==1) value <- as.vector(value)
+
+
+# do recycling rule and throw a warning like this:
+#if (length(value)<length(i)) warning("number of items to replace is not a multiple of replacement length")
+#then check init is working properly.
+
+value <- sapply(strtrim(value, maxchar(x)), function(a) {
+  if (is.na(a)) return(rep(NA, maxchar(x)))
+  else c(charToRaw(a), rep(0, maxchar(x)-nchar(a)))
+}) #addition of Rodrigo & Shae
+
+# 
+# 
+# 
+#             areNA <- is.na(value)
+#             value[areNA] <- "X" # Because strsplit(NA, "") is an error
+#             value <- strsplit(value, "") # Examine strsplit("", "")
+#             value <- lapply(value,
+#                             function(a) {
+#                               if (length(a)==0) return(0)
+#                               else return(as.integer(sapply(a, charToRaw)))
+#                             })
+#             if (any(unlist(value) > 127)) stop("Invalid character")
+#             these <- sapply(value, length)
+#             value[these < maxchar(x)] <-
+#               lapply(value[these < maxchar(x)],
+#                      function(a) c(a, rep(NA, maxchar(x)-length(a))))
+#             
+#             # POTENTIAL HOMEWORK EXERCISE:
+#             if (any(these > maxchar(x))) {
+#               warning("Long string(s) truncated to maxchar characters")
+#               value[these > maxchar(x)] <- lapply(value[these > maxchar(x)],
+#                                                   function(a) a[1:maxchar(x)])
+#             }
+#             
+#             # We may have an assignment bug in bigmemory with a 1-column
+#             # matrix.
+#             value <- matrix(unlist(value), nrow=maxchar(x)) # needed
+#             if (any(areNA)) value[,areNA] <- NA
+#             if (ncol(value)==1) value <- as.vector(value)
             return(bigmemory:::SetCols.bm(x, i, value))
           })
 
